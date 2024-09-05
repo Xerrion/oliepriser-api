@@ -54,7 +54,10 @@ pub(crate) async fn fetch_provider(
             .fetch_one(&state.db)
             .await
         {
-            Ok(res) => res,
+            Ok(res) => {
+                update_last_accessed(State(state), Path(id)).await?;
+                res
+            }
             Err(e) => {
                 return Err((StatusCode::INTERNAL_SERVER_ERROR, e.to_string()));
             }
@@ -75,6 +78,24 @@ pub(crate) async fn update_provider(
             .bind(json.id)
             .execute(&state.db)
             .await
+    {
+        return Err((
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("Error while updating a record: {e}"),
+        ));
+    }
+
+    Ok(StatusCode::OK)
+}
+
+pub(crate) async fn update_last_accessed(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+) -> Result<StatusCode, (StatusCode, String)> {
+    if let Err(e) = sqlx::query("UPDATE providers SET last_accessed = NOW() WHERE id = $1")
+        .bind(id)
+        .execute(&state.db)
+        .await
     {
         return Err((
             StatusCode::INTERNAL_SERVER_ERROR,

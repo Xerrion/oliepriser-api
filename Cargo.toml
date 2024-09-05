@@ -9,7 +9,7 @@ serde = { version = "1.0.209", features = ["derive"] }
 shuttle-axum = "0.47.0"
 shuttle-runtime = "0.47.0"
 shuttle-shared-db = { version = "0.47.0", features = ["sqlx", "postgres"] }
-sqlx = { version = "0.7.1", features = ["postgres", "runtime-tokio-rustls"] }
+sqlx = { version = "0.7.1", features = ["chrono", "postgres", "runtime-tokio-rustls"] }
 tokio = "1.28.2"
 chrono = "0.4.38"
 axum-macros = "0.4.1"

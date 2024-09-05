@@ -1,15 +1,14 @@
 use serde::{Deserialize, Serialize};
 
-#[warn(dead_code)]
 #[derive(sqlx::FromRow, Deserialize, Serialize)]
 pub(crate) struct Providers {
     pub(crate) id: i32,
     pub(crate) name: String,
     pub(crate) url: String,
     pub(crate) html_element: String,
+    pub(crate) last_accessed: chrono::NaiveDateTime,
 }
 
-#[warn(dead_code)]
 #[derive(Deserialize)]
 pub(crate) struct ProviderAdd {
     pub(crate) name: String,
@@ -17,17 +16,8 @@ pub(crate) struct ProviderAdd {
     pub(crate) html_element: String,
 }
 
-#[warn(dead_code)]
-#[derive(Deserialize)]
-pub(crate) struct ProviderUpdate {
-    pub(crate) id: i32,
-    pub(crate) name: String,
-    pub(crate) url: String,
-    pub(crate) html_element: String,
-}
-
 // Ignore dead code warning
-#[derive(sqlx::FromRow)]
+#[derive(sqlx::FromRow, Serialize)]
 pub(crate) struct Prices {
     pub(crate) id: i32,
     pub(crate) provider_id: i32,
@@ -35,36 +25,13 @@ pub(crate) struct Prices {
     pub(crate) created_at: chrono::NaiveDateTime,
 }
 
-#[warn(dead_code)]
 #[derive(Deserialize)]
-pub(crate) struct PriceAdd {
-    pub(crate) provider_id: i32,
+pub(crate) struct ProviderPriceAdd {
     pub(crate) price: f64,
 }
 
-#[warn(dead_code)]
 #[derive(sqlx::FromRow, Serialize)]
-pub(crate) struct OilPriceWithProvider {
-    pub(crate) oil_price_id: i32,
-    pub(crate) price: f64,
-    pub(crate) provider_name: String,
-    pub(crate) url: String,
-    pub(crate) created_at: i64,
-}
-
-#[derive(Serialize)]
 pub(crate) struct PriceDetails {
     pub(crate) price: f64,
-    pub(crate) created_at: i64,
-}
-
-#[derive(Serialize)]
-pub(crate) struct ProviderPrices {
-    pub(crate) provider_name: String,
-    pub(crate) prices: Vec<(i32, PriceDetails)>,
-}
-
-#[derive(Serialize)]
-struct ResponseData {
-    pub(crate) data: Vec<ProviderPrices>,
+    pub(crate) created_at: chrono::NaiveDateTime,
 }
