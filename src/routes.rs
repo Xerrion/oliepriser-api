@@ -21,7 +21,7 @@ pub(crate) fn router(state: AppState) -> Router {
                 .delete(delete_provider),
         )
         .route("/providers/:id/prices", get(fetch_oil_prices_by_provider))
-        .route("/prices", get(fetch_prices).post(create_price)).
+        .route("/prices", get(fetch_prices).post(create_price))
         .route("/prices/:id", delete(delete_price))
         .with_state(state);
 
