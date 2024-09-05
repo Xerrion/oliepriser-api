@@ -35,3 +35,11 @@ pub(crate) struct PriceDetails {
     pub(crate) price: f64,
     pub(crate) created_at: chrono::NaiveDateTime,
 }
+
+#[derive(Deserialize)]
+pub struct PriceQueryParams {
+    pub(crate) limit: Option<i64>,
+    pub(crate) offset: Option<i64>,
+    pub(crate) start: Option<chrono::NaiveDateTime>,
+    pub(crate) end: Option<chrono::NaiveDateTime>,
+}

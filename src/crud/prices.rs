@@ -1,10 +1,10 @@
-use axum::extract::{Path, State};
+use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::Json;
 
 use crate::app_state::AppState;
-use crate::models::{PriceDetails, Prices, ProviderPriceAdd};
+use crate::models::{PriceDetails, PriceQueryParams, Prices, ProviderPriceAdd};
 
 pub(crate) async fn create_price_for_provider(
     State(state): State<AppState>,
@@ -42,6 +42,8 @@ pub(crate) async fn fetch_prices(
             providers
         ON 
             oil_prices.provider_id = providers.id;
+        ORDER BY
+            oil_prices.created_at ASC;
     "#,
     )
     .fetch_all(&state.db)
@@ -59,6 +61,7 @@ pub(crate) async fn fetch_prices(
 pub(crate) async fn fetch_prices_by_provider(
     State(state): State<AppState>,
     Path(id): Path<i32>,
+    Query(params): Query<PriceQueryParams>,
 ) -> Result<impl IntoResponse, impl IntoResponse> {
     let query = r#"
         SELECT 
@@ -67,11 +70,22 @@ pub(crate) async fn fetch_prices_by_provider(
         FROM
             oil_prices
         WHERE 
-            oil_prices.provider_id = $1;
+            oil_prices.provider_id = $1
+            AND oil_prices.price IS NOT NULL
+            AND ($4 IS NULL OR oil_prices.created_at > $4)
+            AND ($5 IS NULL OR oil_prices.created_at < $5)
+        ORDER BY
+            oil_prices.created_at ASC
+        LIMIT $2
+        OFFSET $3;
     "#;
 
     let results: Vec<PriceDetails> = match sqlx::query_as::<_, PriceDetails>(query)
         .bind(id)
+        .bind(params.limit.unwrap_or(1000))
+        .bind(params.offset.unwrap_or(0))
+        .bind(params.start)
+        .bind(params.end)
         .fetch_all(&state.db)
         .await
     {

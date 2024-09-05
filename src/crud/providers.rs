@@ -2,7 +2,6 @@ use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::Json;
-use sqlx::Executor;
 
 use crate::app_state::AppState;
 use crate::models::{ProviderAdd, Providers};
