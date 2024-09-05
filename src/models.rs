@@ -26,7 +26,7 @@ pub(crate) struct ProviderUpdate {
     pub(crate) html_element: String,
 }
 
-#[warn(dead_code)]
+// Ignore dead code warning
 #[derive(sqlx::FromRow)]
 pub(crate) struct Prices {
     pub(crate) id: i32,

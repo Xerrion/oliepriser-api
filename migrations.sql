@@ -14,3 +14,6 @@ CREATE TABLE IF NOT EXISTS oil_prices (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (provider_id) REFERENCES providers(id)
 );
+
+ALTER TABLE oil_prices
+ALTER COLUMN price TYPE FLOAT8 USING price::FLOAT8;
