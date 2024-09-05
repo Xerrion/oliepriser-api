@@ -46,7 +46,6 @@ pub(crate) struct PriceAdd {
 #[derive(sqlx::FromRow, Serialize)]
 pub(crate) struct OilPriceWithProvider {
     pub(crate) oil_price_id: i32,
-    pub(crate) oil_name: String,
     pub(crate) price: f64,
     pub(crate) provider_name: String,
     pub(crate) url: String,
