@@ -1,5 +1,5 @@
 use crate::app_state::AppState;
-use crate::models::{OilPriceWithProvider, PriceAdd};
+use crate::models::{OilPriceWithProvider, PriceAdd, PriceDetails, ProviderPrices};
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
@@ -27,13 +27,14 @@ pub(crate) async fn create_price(
 pub(crate) async fn fetch_prices(
     State(state): State<AppState>,
 ) -> Result<impl IntoResponse, impl IntoResponse> {
-    let res: Vec<OilPriceWithProvider> = match sqlx::query_as::<_, OilPriceWithProvider>(
+    let rows: Vec<OilPriceWithProvider> = match sqlx::query_as::<_, OilPriceWithProvider>(
         r#"
         SELECT 
             oil_prices.id AS oil_price_id,
             oil_prices.price,
+            oil_prices.created_at,
             providers.name AS provider_name,
-            providers.url
+            providers.url AS provider_url
         FROM 
             oil_prices
         JOIN 
@@ -51,7 +52,31 @@ pub(crate) async fn fetch_prices(
         }
     };
 
-    Ok(Json(res))
+    // Transform the data into the desired structure
+    let mut provider_map: std::collections::HashMap<String, Vec<(i32, PriceDetails)>> =
+        std::collections::HashMap::new();
+
+    for row in rows {
+        let price_details = PriceDetails {
+            price: row.price,
+            created_at: row.created_at,
+        };
+
+        provider_map
+            .entry(row.provider_name)
+            .or_insert_with(Vec::new)
+            .push((row.oil_price_id, price_details));
+    }
+
+    let response_data: Vec<ProviderPrices> = provider_map
+        .into_iter()
+        .map(|(provider_name, prices)| ProviderPrices {
+            provider_name,
+            prices,
+        })
+        .collect();
+
+    Ok(Json(response_data))
 }
 
 pub(crate) async fn fetch_oil_prices_by_provider(

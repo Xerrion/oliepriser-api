@@ -49,4 +49,22 @@ pub(crate) struct OilPriceWithProvider {
     pub(crate) price: f64,
     pub(crate) provider_name: String,
     pub(crate) url: String,
+    pub(crate) created_at: i64,
+}
+
+#[derive(Serialize)]
+pub(crate) struct PriceDetails {
+    pub(crate) price: f64,
+    pub(crate) created_at: i64,
+}
+
+#[derive(Serialize)]
+pub(crate) struct ProviderPrices {
+    pub(crate) provider_name: String,
+    pub(crate) prices: Vec<(i32, PriceDetails)>,
+}
+
+#[derive(Serialize)]
+struct ResponseData {
+    pub(crate) data: Vec<ProviderPrices>,
 }
