@@ -1,12 +1,7 @@
 use axum::{routing::get, Router};
-
-async fn hello_world() -> &'static str {
-    "Hello, world!"
-}
+use sqlx::Executor;
 
 #[shuttle_runtime::main]
-async fn main() -> shuttle_axum::ShuttleAxum {
-    let router = Router::new().route("/", get(hello_world));
-
-    Ok(router.into())
+async fn main(#[shuttle_shared_db::Postgres] db: PgPool) -> shuttle_axum::ShuttleAxum {
+    db.execute(include_str!("../migrations.sql")).await.unwrap();
 }
