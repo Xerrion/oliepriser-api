@@ -1,7 +1,8 @@
-use axum::routing::delete;
+use axum::routing::{delete, post};
 use axum::{routing::get, Router};
 
 use crate::app_state::AppState;
+use crate::auth::routes::{authorize, create_user};
 use crate::crud::prices::{
     create_price_for_provider, delete_price, fetch_prices, fetch_prices_by_provider,
 };
@@ -29,6 +30,8 @@ pub(crate) fn router(state: AppState) -> Router {
         )
         .route("/prices", get(fetch_prices))
         .route("/prices/:id", delete(delete_price))
+        .route("/auth/login", post(authorize))
+        .route("/auth/create", post(create_user))
         .with_state(state);
 
     router

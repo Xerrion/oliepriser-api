@@ -4,9 +4,11 @@ use sqlx::Executor;
 use sqlx::PgPool;
 
 mod app_state;
+mod auth;
 mod crud;
 mod models;
 mod routes;
+mod security;
 
 #[shuttle_runtime::main]
 async fn main(#[shuttle_shared_db::Postgres] db: PgPool) -> shuttle_axum::ShuttleAxum {

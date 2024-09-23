@@ -4,9 +4,11 @@ use axum::response::IntoResponse;
 use axum::Json;
 
 use crate::app_state::AppState;
+use crate::auth::jwt::Claims;
 use crate::models::{ProviderAdd, Providers};
 
 pub(crate) async fn create_provider(
+    _claims: Claims,
     State(state): State<AppState>,
     Json(json): Json<ProviderAdd>,
 ) -> Result<impl IntoResponse, impl IntoResponse> {
@@ -66,6 +68,7 @@ pub(crate) async fn fetch_provider(
 }
 
 pub(crate) async fn update_provider(
+    _claims: Claims,
     State(state): State<AppState>,
     Json(json): Json<Providers>,
 ) -> Result<impl IntoResponse, impl IntoResponse> {
@@ -106,6 +109,7 @@ pub(crate) async fn update_last_accessed(
 }
 
 pub(crate) async fn delete_provider(
+    _claims: Claims,
     State(state): State<AppState>,
     Path(id): Path<i32>,
 ) -> Result<impl IntoResponse, impl IntoResponse> {
