@@ -1,0 +1,29 @@
+POST http://127.0.0.1:8000/auth/login
+Content-Type: application/json
+
+{
+  "client_id": "test",
+  "client_secret": "test"
+}
+
+### Get zones
+GET http://127.0.0.1:8000/zones
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJleHAiOjE3Mjk4NjAxMjN9.C8MvmfkWbDvJIqhggXUtpCBHxuycZponMgodmsMPZ6s
+
+### Create zone
+POST http://127.0.0.1:8000/zones
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJleHAiOjE3Mjk4NjAxMjN9.C8MvmfkWbDvJIqhggXUtpCBHxuycZponMgodmsMPZ6s
+content-type: application/json
+
+{
+  "name": "Jylland",
+  "description": ""
+}
+
+### Delete zone
+DELETE http://127.0.0.1:8000/zones/7
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJleHAiOjE3Mjk4NjAxMjN9.C8MvmfkWbDvJIqhggXUtpCBHxuycZponMgodmsMPZ6s
+
+### Delete non-existing zone
+DELETE http://127.0.0.1:8000/zones/999
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJleHAiOjE3Mjk4NjAxMjN9.C8MvmfkWbDvJIqhggXUtpCBHxuycZponMgodmsMPZ6s

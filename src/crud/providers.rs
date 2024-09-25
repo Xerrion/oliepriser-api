@@ -1,44 +1,63 @@
+use std::collections::HashMap;
+
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use axum::response::IntoResponse;
 use axum::Json;
 
 use crate::app_state::AppState;
 use crate::auth::jwt::Claims;
-use crate::models::{ProviderAdd, Providers};
+use crate::errors::{ProvidersError, ProvidersSuccess};
+use crate::models::delivery_zones::{DeliveryZoneProviderAdd, DeliveryZones};
+use crate::models::providers::{ProviderAdd, ProviderWithZones, ProviderZoneRow, Providers};
 
 pub(crate) async fn create_provider(
     _claims: Claims,
     State(state): State<AppState>,
     Json(json): Json<ProviderAdd>,
-) -> Result<impl IntoResponse, impl IntoResponse> {
-    if let Err(e) =
-        sqlx::query("INSERT INTO providers (name, url, html_element) VALUES ($1, $2, $3)")
-            .bind(json.name)
-            .bind(json.url)
-            .bind(json.html_element)
-            .execute(&state.db)
-            .await
+) -> Result<ProvidersSuccess, ProvidersError> {
+    let row: ProviderAdd = sqlx::query_as::<_, ProviderAdd>(
+        "INSERT INTO providers (name, url, html_element) VALUES ($1, $2, $3) RETURNING id",
+    )
+    .bind(json.name)
+    .bind(json.url)
+    .bind(json.html_element)
+    .fetch_one(&state.db) // Fetch the row returned by the insert
+    .await
+    .map_err(ProvidersError::insert_error)?; // Convert error if any
+
+    let id = row.id;
+
+    Ok(ProvidersSuccess::created(id))
+}
+
+pub(crate) async fn add_delivery_zone_to_provider(
+    _claims: Claims,
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+    Json(json): Json<DeliveryZoneProviderAdd>,
+) -> Result<ProvidersSuccess, ProvidersError> {
+    if let Err(e) = sqlx::query("INSERT INTO delivery_zone (provider_id, zone_id) VALUES ($1, $2)")
+        .bind(id)
+        .bind(json.zone_id)
+        .execute(&state.db)
+        .await
     {
-        return Err((
-            StatusCode::INTERNAL_SERVER_ERROR,
-            format!("Error while inserting a record: {e}"),
-        ));
+        return Err(ProvidersError::insert_error(e));
     }
 
-    Ok(StatusCode::OK)
+    Ok(ProvidersSuccess::updated(id))
 }
 
 pub(crate) async fn fetch_providers(
     State(state): State<AppState>,
-) -> Result<impl IntoResponse, impl IntoResponse> {
+) -> Result<Json<Vec<Providers>>, ProvidersError> {
     let res: Vec<Providers> = match sqlx::query_as::<_, Providers>("SELECT * FROM providers")
         .fetch_all(&state.db)
         .await
     {
         Ok(res) => res,
         Err(e) => {
-            return Err((StatusCode::INTERNAL_SERVER_ERROR, e.to_string()));
+            return Err(ProvidersError::fetch_error(e));
         }
     };
 
@@ -48,7 +67,7 @@ pub(crate) async fn fetch_providers(
 pub(crate) async fn fetch_provider(
     State(state): State<AppState>,
     Path(id): Path<i32>,
-) -> Result<impl IntoResponse, impl IntoResponse> {
+) -> Result<Json<Providers>, ProvidersError> {
     let res: Providers =
         match sqlx::query_as::<_, Providers>("SELECT * FROM providers WHERE id = $1")
             .bind(id)
@@ -60,7 +79,7 @@ pub(crate) async fn fetch_provider(
                 res
             }
             Err(e) => {
-                return Err((StatusCode::INTERNAL_SERVER_ERROR, e.to_string()));
+                return Err(ProvidersError::fetch_error(e));
             }
         };
 
@@ -71,7 +90,7 @@ pub(crate) async fn update_provider(
     _claims: Claims,
     State(state): State<AppState>,
     Json(json): Json<Providers>,
-) -> Result<impl IntoResponse, impl IntoResponse> {
+) -> Result<StatusCode, ProvidersError> {
     if let Err(e) =
         sqlx::query("UPDATE providers SET name = $1, url = $2, html_element = $3 WHERE id = $4")
             .bind(json.name)
@@ -81,48 +100,107 @@ pub(crate) async fn update_provider(
             .execute(&state.db)
             .await
     {
-        return Err((
-            StatusCode::INTERNAL_SERVER_ERROR,
-            format!("Error while updating a record: {e}"),
-        ));
+        return Err(ProvidersError::update_error(e));
     }
 
     Ok(StatusCode::OK)
 }
 
+pub(crate) async fn fetch_providers_with_zones(
+    State(state): State<AppState>,
+) -> Result<Json<Vec<ProviderWithZones>>, ProvidersError> {
+    let rows = match sqlx::query_as::<_, ProviderZoneRow>(
+        r#"
+        SELECT
+            p.id as provider_id, p.name as provider_name, p.url, p.html_element,
+            p.created_at, p.last_updated, p.last_accessed,
+            z.id as zone_id, z.name as zone_name, z.description
+        FROM
+            providers p
+        LEFT JOIN
+            provider_zones pz ON p.id = pz.provider_id
+        LEFT JOIN
+            zones z ON pz.zone_id = z.id
+        ORDER BY
+            p.id
+        "#,
+    )
+    .fetch_all(&state.db)
+    .await
+    {
+        Ok(rows) => rows,
+        Err(e) => return Err(ProvidersError::fetch_error(e)),
+    };
+
+    let mut providers_map: HashMap<i32, ProviderWithZones> = HashMap::new();
+
+    for row in rows {
+        let provider_id = row.provider_id;
+        let provider_entry = providers_map
+            .entry(provider_id)
+            .or_insert(ProviderWithZones {
+                id: provider_id,
+                name: row.provider_name,
+                url: row.url,
+                html_element: row.html_element,
+                created_at: row.created_at,
+                last_updated: row.last_updated,
+                last_accessed: row.last_accessed,
+                zones: vec![],
+            });
+
+        if let Some(zone_id) = row.zone_id {
+            provider_entry.zones.push(DeliveryZones {
+                id: zone_id,
+                name: row.zone_name.unwrap_or_default(),
+                description: row.description.unwrap(),
+            });
+        }
+    }
+
+    let providers_with_zones: Vec<ProviderWithZones> = providers_map.into_values().collect();
+
+    Ok(Json(providers_with_zones))
+}
+
 pub(crate) async fn update_last_accessed(
     State(state): State<AppState>,
     Path(id): Path<i32>,
-) -> Result<StatusCode, (StatusCode, String)> {
+) -> Result<ProvidersSuccess, ProvidersError> {
     if let Err(e) = sqlx::query("UPDATE providers SET last_accessed = NOW() WHERE id = $1")
         .bind(id)
         .execute(&state.db)
         .await
     {
-        return Err((
-            StatusCode::INTERNAL_SERVER_ERROR,
-            format!("Error while updating a record: {e}"),
-        ));
+        return Err(ProvidersError::update_error(e));
     }
 
-    Ok(StatusCode::OK)
+    Ok(ProvidersSuccess::updated(id))
 }
 
 pub(crate) async fn delete_provider(
     _claims: Claims,
     State(state): State<AppState>,
     Path(id): Path<i32>,
-) -> Result<impl IntoResponse, impl IntoResponse> {
+) -> Result<ProvidersSuccess, ProvidersError> {
+    let check_record: Option<(i32,)> =
+        sqlx::query_as::<_, (i32,)>("SELECT id FROM providers WHERE id = $1")
+            .bind(id)
+            .fetch_optional(&state.db)
+            .await
+            .map_err(ProvidersError::fetch_error)?;
+
+    if !check_record.is_some() {
+        return Err(ProvidersError::fetch_error(sqlx::Error::RowNotFound));
+    }
+
     if let Err(e) = sqlx::query("DELETE FROM providers WHERE id = $1")
         .bind(id)
         .execute(&state.db)
         .await
     {
-        return Err((
-            StatusCode::INTERNAL_SERVER_ERROR,
-            format!("Error while deleting a record: {e}"),
-        ));
+        return Err(ProvidersError::delete_error(e));
     }
 
-    Ok(StatusCode::OK)
+    Ok(ProvidersSuccess::deleted(id))
 }

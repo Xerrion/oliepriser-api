@@ -14,7 +14,6 @@ use crate::auth::security::{hash_password, verify_password};
 
 #[derive(Debug, sqlx::FromRow)]
 struct User {
-    client_id: String,
     password_hash: String,
 }
 // Implement conversion from Argon2 error to your AuthError

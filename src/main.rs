@@ -6,6 +6,7 @@ use sqlx::PgPool;
 mod app_state;
 mod auth;
 mod crud;
+mod errors;
 mod models;
 mod routes;
 mod security;

@@ -1,48 +1,44 @@
 use axum::extract::{Path, Query, State};
-use axum::http::StatusCode;
-use axum::response::IntoResponse;
 use axum::Json;
 
 use crate::app_state::AppState;
 use crate::auth::jwt::Claims;
-use crate::models::{PriceDetails, PriceQueryParams, Prices, ProviderPriceAdd};
+use crate::errors::{PricesError, PricesSuccess};
+use crate::models::prices::{PriceDetails, PriceQueryParams, Prices, ProviderPriceAdd};
 
 pub(crate) async fn create_price_for_provider(
     _claims: Claims,
     State(state): State<AppState>,
     Path(id): Path<i32>,
     Json(json): Json<ProviderPriceAdd>,
-) -> Result<impl IntoResponse, impl IntoResponse> {
-    if let Err(e) = sqlx::query("INSERT INTO oil_prices (provider_id, price) VALUES ($1, $2)")
-        .bind(id)
-        .bind(json.price)
-        .execute(&state.db)
-        .await
-    {
-        return Err((
-            StatusCode::INTERNAL_SERVER_ERROR,
-            format!("Error while inserting a record: {e}"),
-        ));
-    }
+) -> Result<PricesSuccess, PricesError> {
+    let row = sqlx::query_as::<_, ProviderPriceAdd>(
+        "INSERT INTO oil_prices (provider_id, price) VALUES ($1, $2) RETURNING id",
+    )
+    .bind(id)
+    .bind(json.price)
+    .fetch_one(&state.db)
+    .await
+    .map_err(PricesError::insert_error)?;
 
-    Ok(StatusCode::OK)
+    Ok(PricesSuccess::created(row.id))
 }
 
 pub(crate) async fn fetch_prices(
     State(state): State<AppState>,
-) -> Result<impl IntoResponse, impl IntoResponse> {
+) -> Result<Json<Vec<Prices>>, PricesError> {
     let rows: Vec<Prices> = match sqlx::query_as::<_, Prices>(
         r#"
-    SELECT 
+    SELECT
         oil_prices.id AS id,
         oil_prices.price,
         oil_prices.created_at,
         providers.id AS provider_id
     FROM
         oil_prices
-    JOIN 
+    JOIN
         providers
-    ON 
+    ON
         oil_prices.provider_id = providers.id
     ORDER BY
         oil_prices.created_at ASC
@@ -53,7 +49,7 @@ pub(crate) async fn fetch_prices(
     {
         Ok(res) => res,
         Err(e) => {
-            return Err((StatusCode::INTERNAL_SERVER_ERROR, e.to_string()));
+            return Err(PricesError::fetch_error(e));
         }
     };
 
@@ -64,14 +60,14 @@ pub(crate) async fn fetch_prices_by_provider(
     State(state): State<AppState>,
     Path(id): Path<i32>,
     Query(params): Query<PriceQueryParams>,
-) -> Result<impl IntoResponse, impl IntoResponse> {
+) -> Result<Json<Vec<PriceDetails>>, PricesError> {
     let query = r#"
-        SELECT 
+        SELECT
             oil_prices.price,
             oil_prices.created_at
         FROM
             oil_prices
-        WHERE 
+        WHERE
             oil_prices.provider_id = $1
             AND oil_prices.price IS NOT NULL
             AND ($4 IS NULL OR oil_prices.created_at > $4)
@@ -93,7 +89,7 @@ pub(crate) async fn fetch_prices_by_provider(
     {
         Ok(res) => res,
         Err(e) => {
-            return Err((StatusCode::INTERNAL_SERVER_ERROR, e.to_string()));
+            return Err(PricesError::fetch_error(e));
         }
     };
 
@@ -104,17 +100,24 @@ pub(crate) async fn delete_price(
     _claims: Claims,
     State(state): State<AppState>,
     Path(id): Path<i32>,
-) -> Result<impl IntoResponse, impl IntoResponse> {
+) -> Result<PricesSuccess, PricesError> {
+    let check_record: Option<Prices> = sqlx::query_as("SELECT * FROM oil_prices WHERE id = $1")
+        .bind(id)
+        .fetch_optional(&state.db)
+        .await
+        .map_err(PricesError::fetch_error)?;
+
+    if !check_record.is_some() {
+        return Err(PricesError::fetch_error(sqlx::Error::RowNotFound));
+    }
+
     if let Err(e) = sqlx::query("DELETE FROM oil_prices WHERE id = $1")
         .bind(id)
         .execute(&state.db)
         .await
     {
-        return Err((
-            StatusCode::INTERNAL_SERVER_ERROR,
-            format!("Error while deleting a record: {e}"),
-        ));
+        return Err(PricesError::delete_error(e));
     }
 
-    Ok(StatusCode::OK)
+    Ok(PricesSuccess::deleted(id))
 }
