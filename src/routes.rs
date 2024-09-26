@@ -13,6 +13,7 @@ use crate::crud::providers::{
     add_delivery_zone_to_provider, create_provider, delete_provider, fetch_provider,
     fetch_providers, update_provider,
 };
+use crate::crud::scraping_runs::create_scraping_run;
 
 async fn hello_world() -> &'static str {
     "Hello, world!"
@@ -49,6 +50,8 @@ pub(crate) fn router(state: AppState) -> Router {
         .route("/", get(fetch_delivery_zones).post(create_delivery_zone))
         .route("/:id", delete(delete_delivery_zone));
 
+    let scrape_run_routes = Router::new().route("/", get(create_scraping_run));
+
     // Main router combining everything
     Router::new()
         .route("/", get(hello_world))
@@ -56,5 +59,6 @@ pub(crate) fn router(state: AppState) -> Router {
         .nest("/providers", provider_routes)
         .nest("/prices", price_routes)
         .nest("/zones", zone_routes)
+        .nest("/scrape_runs", scrape_run_routes)
         .with_state(state)
 }

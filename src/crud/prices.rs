@@ -4,7 +4,9 @@ use axum::Json;
 use crate::app_state::AppState;
 use crate::auth::jwt::Claims;
 use crate::errors::{PricesError, PricesSuccess};
-use crate::models::prices::{PriceDetails, PriceQueryParams, Prices, ProviderPriceAdd};
+use crate::models::prices::{
+    PriceDetails, PriceInsertResponse, PriceQueryParams, Prices, ProviderPriceAdd,
+};
 
 pub(crate) async fn create_price_for_provider(
     _claims: Claims,
@@ -12,7 +14,7 @@ pub(crate) async fn create_price_for_provider(
     Path(id): Path<i32>,
     Json(json): Json<ProviderPriceAdd>,
 ) -> Result<PricesSuccess, PricesError> {
-    let row = sqlx::query_as::<_, ProviderPriceAdd>(
+    let row: PriceInsertResponse = sqlx::query_as::<_, PriceInsertResponse>(
         "INSERT INTO oil_prices (provider_id, price) VALUES ($1, $2) RETURNING id",
     )
     .bind(id)

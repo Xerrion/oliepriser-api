@@ -26,8 +26,8 @@ CREATE TABLE IF NOT EXISTS provider_delivery_zones
 CREATE TABLE IF NOT EXISTS oil_prices
 (
     id          SERIAL PRIMARY KEY,
-    price       DECIMAL(10, 2) NOT NULL,
-    provider_id INT            NOT NULL REFERENCES providers (id) ON DELETE CASCADE,
+    price       DOUBLE PRECISION NOT NULL,
+    provider_id INT              NOT NULL REFERENCES providers (id) ON DELETE CASCADE,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

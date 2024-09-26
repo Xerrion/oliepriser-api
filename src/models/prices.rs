@@ -11,7 +11,11 @@ pub(crate) struct Prices {
 #[derive(sqlx::FromRow, Deserialize)]
 pub(crate) struct ProviderPriceAdd {
     pub(crate) price: f64,
-    pub id: i32,
+}
+
+#[derive(sqlx::FromRow)]
+pub(crate) struct PriceInsertResponse {
+    pub(crate) id: i32,
 }
 
 #[derive(sqlx::FromRow, Serialize)]

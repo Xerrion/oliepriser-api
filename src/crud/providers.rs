@@ -15,7 +15,7 @@ pub(crate) async fn create_provider(
     State(state): State<AppState>,
     Json(json): Json<ProviderAdd>,
 ) -> Result<ProvidersSuccess, ProvidersError> {
-    let row: ProviderAdd = sqlx::query_as::<_, ProviderAdd>(
+    let row: (i32,) = sqlx::query_as::<_, (i32,)>(
         "INSERT INTO providers (name, url, html_element) VALUES ($1, $2, $3) RETURNING id",
     )
     .bind(json.name)
@@ -25,9 +25,7 @@ pub(crate) async fn create_provider(
     .await
     .map_err(ProvidersError::insert_error)?; // Convert error if any
 
-    let id = row.id;
-
-    Ok(ProvidersSuccess::created(id))
+    Ok(ProvidersSuccess::created(row.0))
 }
 
 pub(crate) async fn add_delivery_zone_to_provider(

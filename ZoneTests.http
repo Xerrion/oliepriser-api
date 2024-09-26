@@ -8,22 +8,33 @@ Content-Type: application/json
 
 ### Get zones
 GET http://127.0.0.1:8000/zones
-Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJleHAiOjE3Mjk4NjAxMjN9.C8MvmfkWbDvJIqhggXUtpCBHxuycZponMgodmsMPZ6s
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJleHAiOjE3Mjk4NjI3MjR9.D27K4OT0yLxSyutBGQGrl2DQDeqMlfBGPH5sHP7D2JE
 
 ### Create zone
 POST http://127.0.0.1:8000/zones
-Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJleHAiOjE3Mjk4NjAxMjN9.C8MvmfkWbDvJIqhggXUtpCBHxuycZponMgodmsMPZ6s
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJleHAiOjE3Mjk4NjI3MjR9.D27K4OT0yLxSyutBGQGrl2DQDeqMlfBGPH5sHP7D2JE
 content-type: application/json
 
 {
-  "name": "Jylland",
+  "name": "Sjælland",
   "description": ""
+}
+
+### Create providers
+POST http://127.0.0.1:8000/providers
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJleHAiOjE3Mjk4NjI3MjR9.D27K4OT0yLxSyutBGQGrl2DQDeqMlfBGPH5sHP7D2JE
+content-type: application/json
+
+{
+  "name": "DCC Energi",
+  "url": "https://www.dccenergi.dk/fyringsolie-prisudvikling/",
+  "html_element": "div.pricelist__group-product:nth-child(3) div.col.col--3"
 }
 
 ### Delete zone
 DELETE http://127.0.0.1:8000/zones/7
-Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJleHAiOjE3Mjk4NjAxMjN9.C8MvmfkWbDvJIqhggXUtpCBHxuycZponMgodmsMPZ6s
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJleHAiOjE3Mjk4NjI3MjR9.D27K4OT0yLxSyutBGQGrl2DQDeqMlfBGPH5sHP7D2JE
 
 ### Delete non-existing zone
 DELETE http://127.0.0.1:8000/zones/999
-Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJleHAiOjE3Mjk4NjAxMjN9.C8MvmfkWbDvJIqhggXUtpCBHxuycZponMgodmsMPZ6s
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJleHAiOjE3Mjk4NjI3MjR9.D27K4OT0yLxSyutBGQGrl2DQDeqMlfBGPH5sHP7D2JE

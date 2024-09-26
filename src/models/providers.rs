@@ -15,7 +15,6 @@ pub(crate) struct ProviderAdd {
     pub(crate) name: String,
     pub(crate) url: String,
     pub(crate) html_element: String,
-    pub id: i32,
 }
 
 #[derive(Serialize)]

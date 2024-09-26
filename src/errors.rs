@@ -218,8 +218,10 @@ macro_rules! impl_success {
 impl_success!(ProvidersSuccess, "provider");
 impl_success!(DeliveryZonesSuccess, "delivery zone");
 impl_success!(PricesSuccess, "price");
+impl_success!(ScrapingRunsSuccess, "scraping run");
 
 // Implement specific error enums using the macro
 impl_error!(ProvidersError, "provider");
 impl_error!(DeliveryZonesError, "delivery zone");
 impl_error!(PricesError, "price");
+impl_error!(ScrapingRunsError, "scraping run");
