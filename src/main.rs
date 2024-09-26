@@ -7,6 +7,7 @@ mod app_state;
 mod auth;
 mod crud;
 mod errors;
+mod helpers;
 mod models;
 mod routes;
 mod security;

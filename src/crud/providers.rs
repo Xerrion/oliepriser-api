@@ -7,6 +7,7 @@ use axum::Json;
 use crate::app_state::AppState;
 use crate::auth::jwt::Claims;
 use crate::errors::{ProvidersError, ProvidersSuccess};
+use crate::helpers::{provider_exists, zone_exists};
 use crate::models::delivery_zones::{DeliveryZoneProviderAdd, DeliveryZones};
 use crate::models::providers::{
     ProviderAdd, ProviderIds, ProviderWithZones, ProviderZoneRow, Providers,
@@ -30,19 +31,30 @@ pub(crate) async fn create_provider(
     Ok(ProvidersSuccess::created(row.0))
 }
 
-pub(crate) async fn add_delivery_zone_to_provider(
+pub(crate) async fn add_delivery_zones_to_provider(
     _claims: Claims,
     State(state): State<AppState>,
     Path(id): Path<i32>,
     Json(json): Json<DeliveryZoneProviderAdd>,
 ) -> Result<ProvidersSuccess, ProvidersError> {
-    if let Err(e) = sqlx::query("INSERT INTO delivery_zone (provider_id, zone_id) VALUES ($1, $2)")
-        .bind(id)
-        .bind(json.zone_id)
-        .execute(&state.db)
-        .await
-    {
-        return Err(ProvidersError::insert_error(e));
+    if !provider_exists(id, &state.db).await? {
+        return Err(ProvidersError::fetch_error(sqlx::Error::RowNotFound));
+    }
+
+    for zone_id in &json.zone_ids {
+        if !zone_exists(*zone_id, &state.db).await? {
+            return Err(ProvidersError::fetch_error(sqlx::Error::RowNotFound));
+        }
+
+        if let Err(e) =
+            sqlx::query("INSERT INTO delivery_zone (provider_id, zone_id) VALUES ($1, $2)")
+                .bind(id)
+                .bind(zone_id)
+                .execute(&state.db)
+                .await
+        {
+            return Err(ProvidersError::insert_error(e));
+        }
     }
 
     Ok(ProvidersSuccess::updated(id))

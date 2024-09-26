@@ -15,5 +15,5 @@ pub(crate) struct DeliveryZonesAdd {
 
 #[derive(Deserialize)]
 pub(crate) struct DeliveryZoneProviderAdd {
-    pub(crate) zone_id: i32,
+    pub(crate) zone_ids: Vec<i32>,
 }
