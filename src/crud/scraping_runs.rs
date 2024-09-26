@@ -25,6 +25,7 @@ pub(crate) async fn create_scraping_run(
 pub(crate) async fn get_last_scraping_run_by_time(
     State(state): State<AppState>,
 ) -> Result<Json<ScrapingRuns>, ScrapingRunsError> {
+    dbg!("get_last_scraping_run_by_time");
     let res: ScrapingRuns = match sqlx::query_as::<_, ScrapingRuns>(
         "SELECT * FROM scraping_runs ORDER BY end_time DESC LIMIT 1",
     )
@@ -36,6 +37,8 @@ pub(crate) async fn get_last_scraping_run_by_time(
             return Err(ScrapingRunsError::fetch_error(e));
         }
     };
+
+    dbg!(&res);
 
     Ok(Json(res))
 }

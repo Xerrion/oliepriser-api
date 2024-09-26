@@ -8,7 +8,9 @@ use crate::app_state::AppState;
 use crate::auth::jwt::Claims;
 use crate::errors::{ProvidersError, ProvidersSuccess};
 use crate::models::delivery_zones::{DeliveryZoneProviderAdd, DeliveryZones};
-use crate::models::providers::{ProviderAdd, ProviderWithZones, ProviderZoneRow, Providers};
+use crate::models::providers::{
+    ProviderAdd, ProviderIds, ProviderWithZones, ProviderZoneRow, Providers,
+};
 
 pub(crate) async fn create_provider(
     _claims: Claims,
@@ -46,10 +48,10 @@ pub(crate) async fn add_delivery_zone_to_provider(
     Ok(ProvidersSuccess::updated(id))
 }
 
-pub(crate) async fn fetch_providers(
+pub(crate) async fn fetch_providers_ids(
     State(state): State<AppState>,
-) -> Result<Json<Vec<Providers>>, ProvidersError> {
-    let res: Vec<Providers> = match sqlx::query_as::<_, Providers>("SELECT * FROM providers")
+) -> Result<Json<Vec<ProviderIds>>, ProvidersError> {
+    let res: Vec<ProviderIds> = match sqlx::query_as::<_, ProviderIds>("SELECT id FROM providers")
         .fetch_all(&state.db)
         .await
     {
@@ -63,6 +65,7 @@ pub(crate) async fn fetch_providers(
 }
 
 pub(crate) async fn fetch_provider(
+    _claims: Claims,
     State(state): State<AppState>,
     Path(id): Path<i32>,
 ) -> Result<Json<Providers>, ProvidersError> {
@@ -116,9 +119,9 @@ pub(crate) async fn fetch_providers_with_zones(
         FROM
             providers p
         LEFT JOIN
-            provider_zones pz ON p.id = pz.provider_id
+            provider_delivery_zones pz ON p.id = pz.provider_id
         LEFT JOIN
-            zones z ON pz.zone_id = z.id
+            delivery_zones z ON pz.zone_id = z.id
         ORDER BY
             p.id
         "#,
@@ -140,10 +143,8 @@ pub(crate) async fn fetch_providers_with_zones(
                 id: provider_id,
                 name: row.provider_name,
                 url: row.url,
-                html_element: row.html_element,
                 created_at: row.created_at,
                 last_updated: row.last_updated,
-                last_accessed: row.last_accessed,
                 zones: vec![],
             });
 

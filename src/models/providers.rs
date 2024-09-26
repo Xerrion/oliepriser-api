@@ -11,6 +11,11 @@ pub(crate) struct Providers {
 }
 
 #[derive(sqlx::FromRow, Deserialize, Serialize)]
+pub(crate) struct ProviderIds {
+    pub(crate) id: i32,
+}
+
+#[derive(sqlx::FromRow, Deserialize, Serialize)]
 pub(crate) struct ProviderAdd {
     pub(crate) name: String,
     pub(crate) url: String,
@@ -22,10 +27,8 @@ pub(crate) struct ProviderWithZones {
     pub(crate) id: i32,
     pub(crate) name: String,
     pub(crate) url: String,
-    pub(crate) html_element: String,
     pub(crate) created_at: chrono::NaiveDateTime,
     pub(crate) last_updated: chrono::NaiveDateTime,
-    pub(crate) last_accessed: chrono::NaiveDateTime,
     pub(crate) zones: Vec<DeliveryZones>,
 }
 

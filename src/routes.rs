@@ -11,9 +11,9 @@ use crate::crud::prices::{
 };
 use crate::crud::providers::{
     add_delivery_zone_to_provider, create_provider, delete_provider, fetch_provider,
-    fetch_providers, update_provider,
+    fetch_providers_ids, fetch_providers_with_zones, update_provider,
 };
-use crate::crud::scraping_runs::create_scraping_run;
+use crate::crud::scraping_runs::{create_scraping_run, get_last_scraping_run_by_time};
 
 async fn hello_world() -> &'static str {
     "Hello, world!"
@@ -27,7 +27,7 @@ pub(crate) fn router(state: AppState) -> Router {
 
     // Provider routes
     let provider_routes = Router::new()
-        .route("/", get(fetch_providers).post(create_provider))
+        .route("/", get(fetch_providers_with_zones).post(create_provider))
         .route(
             "/:id",
             get(fetch_provider)
@@ -50,7 +50,12 @@ pub(crate) fn router(state: AppState) -> Router {
         .route("/", get(fetch_delivery_zones).post(create_delivery_zone))
         .route("/:id", delete(delete_delivery_zone));
 
-    let scrape_run_routes = Router::new().route("/", get(create_scraping_run));
+    let scrape_run_routes = Router::new()
+        .route(
+            "/",
+            get(get_last_scraping_run_by_time).post(create_scraping_run),
+        )
+        .route("/providers", get(fetch_providers_ids));
 
     // Main router combining everything
     Router::new()
