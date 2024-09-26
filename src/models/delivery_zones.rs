@@ -17,3 +17,8 @@ pub(crate) struct DeliveryZonesAdd {
 pub(crate) struct DeliveryZoneProviderAdd {
     pub(crate) zone_ids: Vec<i32>,
 }
+
+#[derive(sqlx::FromRow)]
+pub(crate) struct DeliveryZonesInsertResponse {
+    pub(crate) id: i32,
+}
