@@ -1,6 +1,7 @@
 use crate::app_state::AppState;
 use crate::auth::jwt::Claims;
 use crate::errors::{DeliveryZonesError, DeliveryZonesSuccess};
+use crate::helpers::zone_exists;
 use crate::models::delivery_zones::{DeliveryZones, DeliveryZonesAdd, DeliveryZonesInsertResponse};
 use axum::extract::{Path, State};
 use axum::Json;
@@ -39,12 +40,9 @@ pub(crate) async fn delete_delivery_zone(
     Path(id): Path<i32>,
 ) -> Result<DeliveryZonesSuccess, DeliveryZonesError> {
     // Check if the record exists
-    sqlx::query_as::<_, DeliveryZones>("SELECT * FROM delivery_zones WHERE id = $1")
-        .bind(id)
-        .fetch_optional(&state.db)
-        .await
-        .map_err(DeliveryZonesError::fetch_error)?
-        .ok_or_else(|| DeliveryZonesError::fetch_error(sqlx::Error::RowNotFound))?;
+    if !zone_exists(id, &state.db).await? {
+        return Err(DeliveryZonesError::fetch_error(sqlx::Error::RowNotFound));
+    }
 
     sqlx::query("DELETE FROM delivery_zones WHERE id = $1")
         .bind(id)

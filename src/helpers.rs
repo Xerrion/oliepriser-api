@@ -1,4 +1,4 @@
-use crate::errors::ProvidersError;
+use crate::errors::{DeliveryZonesError, ProvidersError};
 
 pub(crate) async fn provider_exists(id: i32, db: &sqlx::PgPool) -> Result<bool, ProvidersError> {
     let check_record: Option<(i32,)> =
@@ -11,13 +11,13 @@ pub(crate) async fn provider_exists(id: i32, db: &sqlx::PgPool) -> Result<bool, 
     Ok(check_record.is_some())
 }
 
-pub(crate) async fn zone_exists(id: i32, db: &sqlx::PgPool) -> Result<bool, ProvidersError> {
+pub(crate) async fn zone_exists(id: i32, db: &sqlx::PgPool) -> Result<bool, DeliveryZonesError> {
     let check_record: Option<(i32,)> =
         sqlx::query_as::<_, (i32,)>("SELECT id FROM delivery_zones WHERE id = $1")
             .bind(id)
             .fetch_optional(db)
             .await
-            .map_err(ProvidersError::fetch_error)?;
+            .map_err(DeliveryZonesError::fetch_error)?;
 
     Ok(check_record.is_some())
 }
