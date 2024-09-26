@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(sqlx::FromRow, Deserialize, Serialize, Debug)]
+#[derive(sqlx::FromRow, Deserialize, Serialize)]
 pub(crate) struct ScrapingRuns {
     pub(crate) start_time: chrono::NaiveDateTime,
     pub(crate) end_time: chrono::NaiveDateTime,

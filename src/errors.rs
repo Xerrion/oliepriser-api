@@ -227,7 +227,7 @@ impl_error!(PricesError, "price");
 impl_error!(ScrapingRunsError, "scraping run");
 
 impl From<DeliveryZonesError> for ProvidersError {
-    fn from(err: DeliveryZonesError) -> Self {
+    fn from(_err: DeliveryZonesError) -> Self {
         ProvidersError::fetch_error(sqlx::Error::RowNotFound)
     }
 }

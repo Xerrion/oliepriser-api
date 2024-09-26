@@ -10,7 +10,7 @@ use crate::crud::prices::{
     create_price_for_provider, delete_price, fetch_prices, fetch_prices_by_provider,
 };
 use crate::crud::providers::{
-    add_delivery_zone_to_provider, create_provider, delete_provider, fetch_provider,
+    add_delivery_zones_to_provider, create_provider, delete_provider, fetch_provider,
     fetch_providers_ids, fetch_providers_with_zones, update_provider,
 };
 use crate::crud::scraping_runs::{create_scraping_run, get_last_scraping_run_by_time};
@@ -38,7 +38,7 @@ pub(crate) fn router(state: AppState) -> Router {
             "/:id/prices",
             get(fetch_prices_by_provider).post(create_price_for_provider),
         )
-        .route("/:id/zones", post(add_delivery_zone_to_provider));
+        .route("/:id/zones", post(add_delivery_zones_to_provider));
 
     // Price routes
     let price_routes = Router::new()
