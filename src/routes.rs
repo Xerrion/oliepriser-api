@@ -64,6 +64,6 @@ pub(crate) fn router(state: AppState) -> Router {
         .nest("/providers", provider_routes)
         .nest("/prices", price_routes)
         .nest("/zones", zone_routes)
-        .nest("/scrape_runs", scrape_run_routes)
+        .nest("/scraping_runs", scrape_run_routes)
         .with_state(state)
 }

@@ -19,6 +19,8 @@ pub(crate) async fn create_scraping_run(
     .await
     .map_err(ScrapingRunsError::insert_error)?;
 
+    dbg!("Inserted row: {:?}", &row);
+
     Ok(ScrapingRunsSuccess::created(row.id))
 }
 

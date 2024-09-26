@@ -22,6 +22,8 @@ pub(crate) async fn create_price_for_provider(
     .await
     .map_err(PricesError::insert_error)?;
 
+    dbg!("Created price: {:?}", &json.price);
+
     Ok(PricesSuccess::created(row.id))
 }
 

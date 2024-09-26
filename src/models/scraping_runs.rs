@@ -6,7 +6,7 @@ pub(crate) struct ScrapingRuns {
     pub(crate) end_time: chrono::NaiveDateTime,
 }
 
-#[derive(sqlx::FromRow)]
+#[derive(sqlx::FromRow, Debug)]
 pub(crate) struct ScrapingRunsInsertResponse {
     pub(crate) id: i32,
 }
