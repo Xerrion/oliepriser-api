@@ -50,6 +50,7 @@ pub(crate) fn router(state: AppState) -> Router {
         .route("/", get(fetch_delivery_zones).post(create_delivery_zone))
         .route("/:id", delete(delete_delivery_zone));
 
+    // Scraper routes
     let scrape_run_routes = Router::new()
         .route(
             "/",
