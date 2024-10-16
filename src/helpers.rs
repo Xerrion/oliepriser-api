@@ -21,5 +21,3 @@ pub(crate) async fn zone_exists(id: i32, db: &sqlx::PgPool) -> Result<bool, Deli
 
     Ok(check_record.is_some())
 }
-
-fn main() {}
