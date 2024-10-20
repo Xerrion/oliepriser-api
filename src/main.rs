@@ -12,6 +12,19 @@ mod models;
 mod routes;
 mod security;
 
+///
+/// Main function
+///
+/// This function is the entry point of the application
+///
+/// # Arguments
+///
+/// * `db` - The database connection pool
+///
+/// # Returns
+///
+/// The application instance
+///
 #[shuttle_runtime::main]
 async fn main(#[shuttle_shared_db::Postgres] db: PgPool) -> shuttle_axum::ShuttleAxum {
     db.execute(include_str!("../migrations.sql")).await.unwrap();

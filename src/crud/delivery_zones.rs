@@ -6,6 +6,17 @@ use crate::models::delivery_zones::{DeliveryZones, DeliveryZonesAdd, DeliveryZon
 use axum::extract::{Path, State};
 use axum::Json;
 
+/// Creates a new delivery zone in the database.
+///
+/// # Arguments
+///
+/// * `_claims` - The JWT claims of the authenticated user.
+/// * `state` - The application state containing the database connection pool.
+/// * `json` - The JSON payload containing the delivery zone details.
+///
+/// # Returns
+///
+/// * `Result<DeliveryZonesSuccess, DeliveryZonesError>` - The result of the operation, either a success or an error.
 pub(crate) async fn create_delivery_zone(
     _claims: Claims,
     State(state): State<AppState>,
@@ -23,6 +34,15 @@ pub(crate) async fn create_delivery_zone(
     Ok(DeliveryZonesSuccess::created(row.id))
 }
 
+/// Fetches all delivery zones from the database.
+///
+/// # Arguments
+///
+/// * `state` - The application state containing the database connection pool.
+///
+/// # Returns
+///
+/// * `Result<Json<Vec<DeliveryZones>>, DeliveryZonesError>` - The result of the operation, either a list of delivery zones or an error.
 pub(crate) async fn fetch_delivery_zones(
     State(state): State<AppState>,
 ) -> Result<Json<Vec<DeliveryZones>>, DeliveryZonesError> {
@@ -34,6 +54,17 @@ pub(crate) async fn fetch_delivery_zones(
     Ok(Json(res))
 }
 
+/// Deletes a delivery zone from the database.
+///
+/// # Arguments
+///
+/// * `_claims` - The JWT claims of the authenticated user.
+/// * `state` - The application state containing the database connection pool.
+/// * `id` - The ID of the delivery zone to delete.
+///
+/// # Returns
+///
+/// * `Result<DeliveryZonesSuccess, DeliveryZonesError>` - The result of the operation, either a success or an error.
 pub(crate) async fn delete_delivery_zone(
     _claims: Claims,
     State(state): State<AppState>,

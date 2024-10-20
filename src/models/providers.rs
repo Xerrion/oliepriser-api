@@ -18,6 +18,7 @@ pub(crate) struct ProvidersInsertResponse {
 #[derive(sqlx::FromRow, Deserialize, Serialize)]
 pub(crate) struct ProviderIds {
     pub(crate) id: i32,
+    pub(crate) last_accessed: chrono::NaiveDateTime,
 }
 
 #[derive(sqlx::FromRow, Deserialize, Serialize)]

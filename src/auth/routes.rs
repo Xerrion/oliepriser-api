@@ -16,13 +16,33 @@ use crate::auth::security::{hash_password, verify_password};
 struct User {
     password_hash: String,
 }
+
 // Implement conversion from Argon2 error to your AuthError
 impl From<ArgonError> for AuthError {
+    /// Converts an Argon2 error into an AuthError.
+    ///
+    /// # Arguments
+    ///
+    /// * `_` - The Argon2 error.
+    ///
+    /// # Returns
+    ///
+    /// * `AuthError` - The authentication error.
     fn from(_: ArgonError) -> Self {
         AuthError::TokenCreation // Or another variant depending on your context
     }
 }
 
+/// Authorizes a user by verifying their credentials and generating a JWT token.
+///
+/// # Arguments
+///
+/// * `state` - The application state containing the database connection pool.
+/// * `payload` - The JSON payload containing the client ID and client secret.
+///
+/// # Returns
+///
+/// * `Result<Json<AuthBody>, AuthError>` - The result of the operation, either a JSON response with the JWT token or an authentication error.
 pub(crate) async fn authorize(
     State(state): State<AppState>,
     Json(payload): Json<AuthPayload>,
@@ -68,6 +88,16 @@ pub(crate) async fn authorize(
     Ok(Json(AuthBody::new(token)))
 }
 
+/// Creates a new user in the database.
+///
+/// # Arguments
+///
+/// * `state` - The application state containing the database connection pool.
+/// * `payload` - The JSON payload containing the client ID and client secret.
+///
+/// # Returns
+///
+/// * `Result<impl IntoResponse, impl IntoResponse>` - The result of the operation, either a success status code or an error response.
 pub(crate) async fn create_user(
     State(state): State<AppState>,
     Json(payload): Json<AuthPayload>,

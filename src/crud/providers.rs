@@ -12,6 +12,17 @@ use axum::http::StatusCode;
 use axum::Json;
 use std::collections::HashMap;
 
+/// Creates a new provider in the database.
+///
+/// # Arguments
+///
+/// * `_claims` - The JWT claims of the authenticated user.
+/// * `state` - The application state containing the database connection pool.
+/// * `json` - The JSON payload containing the provider details.
+///
+/// # Returns
+///
+/// * `Result<ProvidersSuccess, ProvidersError>` - The result of the operation, either a success or an error.
 pub(crate) async fn create_provider(
     _claims: Claims,
     State(state): State<AppState>,
@@ -30,6 +41,18 @@ pub(crate) async fn create_provider(
     Ok(ProvidersSuccess::created(row.id))
 }
 
+/// Adds delivery zones to a provider in the database.
+///
+/// # Arguments
+///
+/// * `_claims` - The JWT claims of the authenticated user.
+/// * `state` - The application state containing the database connection pool.
+/// * `id` - The ID of the provider.
+/// * `json` - The JSON payload containing the delivery zone IDs.
+///
+/// # Returns
+///
+/// * `Result<ProvidersSuccess, ProvidersError>` - The result of the operation, either a success or an error.
 pub(crate) async fn add_delivery_zones_to_provider(
     _claims: Claims,
     State(state): State<AppState>,
@@ -56,11 +79,21 @@ pub(crate) async fn add_delivery_zones_to_provider(
     Ok(ProvidersSuccess::updated(id))
 }
 
+/// Fetches the IDs of all providers from the database.
+///
+/// # Arguments
+///
+/// * `_claims` - The JWT claims of the authenticated user.
+/// * `state` - The application state containing the database connection pool.
+///
+/// # Returns
+///
+/// * `Result<Json<Vec<ProviderIds>>, ProvidersError>` - The result of the operation, either a list of provider IDs or an error.
 pub(crate) async fn fetch_providers_ids(
     _claims: Claims,
     State(state): State<AppState>,
 ) -> Result<Json<Vec<ProviderIds>>, ProvidersError> {
-    let res = sqlx::query_as::<_, ProviderIds>("SELECT id FROM providers")
+    let res = sqlx::query_as::<_, ProviderIds>("SELECT id,last_accessed FROM providers")
         .fetch_all(&state.db)
         .await
         .map_err(ProvidersError::fetch_error)?;
@@ -68,6 +101,17 @@ pub(crate) async fn fetch_providers_ids(
     Ok(Json(res))
 }
 
+/// Fetches a provider by ID from the database.
+///
+/// # Arguments
+///
+/// * `_claims` - The JWT claims of the authenticated user.
+/// * `state` - The application state containing the database connection pool.
+/// * `id` - The ID of the provider.
+///
+/// # Returns
+///
+/// * `Result<Json<Providers>>, ProvidersError>` - The result of the operation, either the provider details or an error.
 pub(crate) async fn fetch_provider(
     _claims: Claims,
     State(state): State<AppState>,
@@ -79,10 +123,20 @@ pub(crate) async fn fetch_provider(
         .await
         .map_err(ProvidersError::fetch_error)?;
 
-    update_last_accessed(State(state), Path(id)).await?;
     Ok(Json(res))
 }
 
+/// Updates a provider in the database.
+///
+/// # Arguments
+///
+/// * `_claims` - The JWT claims of the authenticated user.
+/// * `state` - The application state containing the database connection pool.
+/// * `json` - The JSON payload containing the updated provider details.
+///
+/// # Returns
+///
+/// * `Result<StatusCode, ProvidersError>` - The result of the operation, either a success status code or an error.
 pub(crate) async fn update_provider(
     _claims: Claims,
     State(state): State<AppState>,
@@ -100,6 +154,15 @@ pub(crate) async fn update_provider(
     Ok(StatusCode::OK)
 }
 
+/// Fetches all providers with their associated delivery zones from the database.
+///
+/// # Arguments
+///
+/// * `state` - The application state containing the database connection pool.
+///
+/// # Returns
+///
+/// * `Result<Json<Vec<ProviderWithZones>>, ProvidersError>` - The result of the operation, either a list of providers with their zones or an error.
 pub(crate) async fn fetch_providers_with_zones(
     State(state): State<AppState>,
 ) -> Result<Json<Vec<ProviderWithZones>>, ProvidersError> {
@@ -150,7 +213,17 @@ pub(crate) async fn fetch_providers_with_zones(
     Ok(Json(providers_map.into_values().collect()))
 }
 
-async fn update_last_accessed(
+/// Updates the last accessed timestamp of a provider in the database.
+///
+/// # Arguments
+///
+/// * `state` - The application state containing the database connection pool.
+/// * `id` - The ID of the provider.
+///
+/// # Returns
+///
+/// * `Result<ProvidersSuccess, ProvidersError>` - The result of the operation, either a success or an error.
+pub(crate) async fn update_last_accessed(
     State(state): State<AppState>,
     Path(id): Path<i32>,
 ) -> Result<ProvidersSuccess, ProvidersError> {
@@ -163,6 +236,17 @@ async fn update_last_accessed(
     Ok(ProvidersSuccess::updated(id))
 }
 
+/// Deletes a provider from the database.
+///
+/// # Arguments
+///
+/// * `_claims` - The JWT claims of the authenticated user.
+/// * `state` - The application state containing the database connection pool.
+/// * `id` - The ID of the provider to delete.
+///
+/// # Returns
+///
+/// * `Result<ProvidersSuccess, ProvidersError>` - The result of the operation, either a success or an error.
 pub(crate) async fn delete_provider(
     _claims: Claims,
     State(state): State<AppState>,

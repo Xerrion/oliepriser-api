@@ -5,6 +5,17 @@ use crate::models::scraping_runs::{ScrapingRuns, ScrapingRunsInsertResponse};
 use axum::extract::State;
 use axum::Json;
 
+/// Creates a new scraping run in the database.
+///
+/// # Arguments
+///
+/// * `_claims` - The JWT claims of the authenticated user.
+/// * `state` - The application state containing the database connection pool.
+/// * `json` - The JSON payload containing the scraping run details.
+///
+/// # Returns
+///
+/// * `Result<ScrapingRunsSuccess, ScrapingRunsError>` - The result of the operation, either a success or an error.
 pub(crate) async fn create_scraping_run(
     _claims: Claims,
     State(state): State<AppState>,
@@ -22,6 +33,15 @@ pub(crate) async fn create_scraping_run(
     Ok(ScrapingRunsSuccess::created(row.id))
 }
 
+/// Fetches the last scraping run by end time from the database.
+///
+/// # Arguments
+///
+/// * `state` - The application state containing the database connection pool.
+///
+/// # Returns
+///
+/// * `Result<Json<ScrapingRuns>, ScrapingRunsError>` - The result of the operation, either the last scraping run or an error.
 pub(crate) async fn get_last_scraping_run_by_time(
     State(state): State<AppState>,
 ) -> Result<Json<ScrapingRuns>, ScrapingRunsError> {

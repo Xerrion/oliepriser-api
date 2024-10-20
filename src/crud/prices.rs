@@ -1,5 +1,6 @@
 use crate::app_state::AppState;
 use crate::auth::jwt::Claims;
+use crate::crud::providers;
 use crate::errors::{PricesError, PricesSuccess};
 use crate::models::prices::{
     PriceDetails, PriceInsertResponse, PriceQueryParams, Prices, ProviderPriceAdd,
@@ -7,6 +8,18 @@ use crate::models::prices::{
 use axum::extract::{Path, Query, State};
 use axum::Json;
 
+/// Creates a new price for a provider in the database.
+///
+/// # Arguments
+///
+/// * `_claims` - The JWT claims of the authenticated user.
+/// * `state` - The application state containing the database connection pool.
+/// * `id` - The ID of the provider.
+/// * `json` - The JSON payload containing the price details.
+///
+/// # Returns
+///
+/// * `Result<PricesSuccess, PricesError>` - The result of the operation, either a success or an error.
 pub(crate) async fn create_price_for_provider(
     _claims: Claims,
     State(state): State<AppState>,
@@ -25,6 +38,15 @@ pub(crate) async fn create_price_for_provider(
     Ok(PricesSuccess::created(row.id))
 }
 
+/// Fetches all prices from the database.
+///
+/// # Arguments
+///
+/// * `state` - The application state containing the database connection pool.
+///
+/// # Returns
+///
+/// * `Result<Json<Vec<Prices>>, PricesError>` - The result of the operation, either a list of prices or an error.
 pub(crate) async fn fetch_prices(
     State(state): State<AppState>,
 ) -> Result<Json<Vec<Prices>>, PricesError> {
@@ -52,6 +74,17 @@ pub(crate) async fn fetch_prices(
     Ok(Json(rows))
 }
 
+/// Fetches prices for a specific provider from the database.
+///
+/// # Arguments
+///
+/// * `state` - The application state containing the database connection pool.
+/// * `id` - The ID of the provider.
+/// * `params` - The query parameters for filtering and pagination.
+///
+/// # Returns
+///
+/// * `Result<Json<Vec<PriceDetails>>, PricesError>` - The result of the operation, either a list of price details or an error.
 pub(crate) async fn fetch_prices_by_provider(
     State(state): State<AppState>,
     Path(id): Path<i32>,
@@ -87,6 +120,17 @@ pub(crate) async fn fetch_prices_by_provider(
     Ok(Json(results))
 }
 
+/// Deletes a price from the database.
+///
+/// # Arguments
+///
+/// * `_claims` - The JWT claims of the authenticated user.
+/// * `state` - The application state containing the database connection pool.
+/// * `id` - The ID of the price to delete.
+///
+/// # Returns
+///
+/// * `Result<PricesSuccess, PricesError>` - The result of the operation, either a success or an error.
 pub(crate) async fn delete_price(
     _claims: Claims,
     State(state): State<AppState>,

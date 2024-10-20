@@ -11,12 +11,18 @@ use rand::distributions::{Alphanumeric, DistString};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
+/// Struct to hold encoding and decoding keys for JWT.
 pub(crate) struct Keys {
     pub(crate) encoding: EncodingKey,
     pub(crate) decoding: DecodingKey,
 }
 
 impl Keys {
+    /// Creates a new `Keys` instance from a secret.
+    ///
+    /// # Arguments
+    ///
+    /// * `secret` - A byte slice containing the secret key.
     fn new(secret: &[u8]) -> Self {
         Self {
             encoding: EncodingKey::from_secret(secret),
@@ -25,11 +31,13 @@ impl Keys {
     }
 }
 
+/// Static instance of `Keys` initialized with a random secret.
 pub(crate) static KEYS: Lazy<Keys> = Lazy::new(|| {
     let secret = Alphanumeric.sample_string(&mut rand::thread_rng(), 60);
     Keys::new(secret.as_bytes())
 });
 
+/// Enum representing different types of authentication errors.
 pub enum AuthError {
     InvalidToken,
     WrongCredentials,
@@ -38,6 +46,11 @@ pub enum AuthError {
 }
 
 impl IntoResponse for AuthError {
+    /// Converts `AuthError` into an HTTP response.
+    ///
+    /// # Returns
+    ///
+    /// * `Response` - The HTTP response containing the error message.
     fn into_response(self) -> Response {
         let (status, error_message) = match self {
             AuthError::WrongCredentials => (StatusCode::UNAUTHORIZED, "Wrong credentials"),
@@ -52,6 +65,7 @@ impl IntoResponse for AuthError {
     }
 }
 
+/// Struct representing JWT claims.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
     pub(crate) username: String,
@@ -65,6 +79,16 @@ where
 {
     type Rejection = AuthError;
 
+    /// Extracts `Claims` from the request parts.
+    ///
+    /// # Arguments
+    ///
+    /// * `parts` - The request parts.
+    /// * `_state` - The state.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<Claims, AuthError>` - The extracted claims or an authentication error.
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         // Extract the token from the authorization header
         let TypedHeader(Authorization(bearer)) = parts
@@ -81,6 +105,8 @@ where
         Ok(token_data.claims)
     }
 }
+
+/// Struct representing the authentication response body.
 #[derive(Debug, Serialize)]
 pub(crate) struct AuthBody {
     access_token: String,
@@ -88,6 +114,15 @@ pub(crate) struct AuthBody {
 }
 
 impl AuthBody {
+    /// Creates a new `AuthBody` instance.
+    ///
+    /// # Arguments
+    ///
+    /// * `access_token` - The access token.
+    ///
+    /// # Returns
+    ///
+    /// * `AuthBody` - The new authentication response body.
     pub(crate) fn new(access_token: String) -> Self {
         Self {
             access_token,
@@ -95,6 +130,8 @@ impl AuthBody {
         }
     }
 }
+
+/// Struct representing the authentication payload.
 #[derive(Debug, Deserialize)]
 pub(crate) struct AuthPayload {
     pub(crate) client_id: String,

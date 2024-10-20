@@ -5,7 +5,7 @@ use axum::Json;
 use serde_json::json;
 use sqlx::Error as SqlxError;
 
-// Define the main application error enum
+/// Enum representing different types of application errors.
 pub(crate) enum AppError {
     InsertError {
         resource: &'static str,
@@ -28,8 +28,12 @@ pub(crate) enum AppError {
     },
 }
 
-// Implement IntoResponse for AppError to handle HTTP responses
 impl IntoResponse for AppError {
+    /// Converts `AppError` into an HTTP response.
+    ///
+    /// # Returns
+    ///
+    /// * `Response<Body>` - The HTTP response corresponding to the error.
     fn into_response(self) -> Response<Body> {
         let (status, body) = match self {
             AppError::InsertError { resource, error } => (
@@ -67,7 +71,18 @@ impl IntoResponse for AppError {
     }
 }
 
-// Macro to implement specific error types
+/// Macro to implement specific error types based on the resource being handled.
+///
+/// # Arguments
+///
+/// * `$name` - The name of the error enum.
+/// * `$resource` - The name of the resource being handled.
+///
+/// # Example
+///
+/// ```rust
+/// impl_error!(ProvidersError, "provider");
+/// ```
 #[macro_export]
 macro_rules! impl_error {
     ($name:ident, $resource:expr) => {
@@ -76,12 +91,26 @@ macro_rules! impl_error {
         }
 
         impl From<AppError> for $name {
+            /// Converts `AppError` into the specific error type.
+            ///
+            /// # Arguments
+            ///
+            /// * `error` - The `AppError` to convert.
+            ///
+            /// # Returns
+            ///
+            /// * `Self` - The specific error type.
             fn from(error: AppError) -> Self {
                 $name::Inner(error)
             }
         }
 
         impl IntoResponse for $name {
+            /// Converts the specific error type into an HTTP response.
+            ///
+            /// # Returns
+            ///
+            /// * `Response<Body>` - The HTTP response corresponding to the error.
             fn into_response(self) -> Response<Body> {
                 match self {
                     $name::Inner(err) => err.into_response(),
@@ -90,6 +119,15 @@ macro_rules! impl_error {
         }
 
         impl $name {
+            /// Creates a new insert error.
+            ///
+            /// # Arguments
+            ///
+            /// * `error` - The SQLx error.
+            ///
+            /// # Returns
+            ///
+            /// * `Self` - The specific error type.
             pub fn insert_error(error: SqlxError) -> Self {
                 AppError::InsertError {
                     resource: $resource,
@@ -98,6 +136,15 @@ macro_rules! impl_error {
                 .into()
             }
 
+            /// Creates a new fetch error.
+            ///
+            /// # Arguments
+            ///
+            /// * `error` - The SQLx error.
+            ///
+            /// # Returns
+            ///
+            /// * `Self` - The specific error type.
             pub fn fetch_error(error: SqlxError) -> Self {
                 AppError::FetchError {
                     resource: $resource,
@@ -106,6 +153,15 @@ macro_rules! impl_error {
                 .into()
             }
 
+            /// Creates a new update error.
+            ///
+            /// # Arguments
+            ///
+            /// * `error` - The SQLx error.
+            ///
+            /// # Returns
+            ///
+            /// * `Self` - The specific error type.
             pub fn update_error(error: SqlxError) -> Self {
                 AppError::UpdateError {
                     resource: $resource,
@@ -114,6 +170,15 @@ macro_rules! impl_error {
                 .into()
             }
 
+            /// Creates a new delete error.
+            ///
+            /// # Arguments
+            ///
+            /// * `error` - The SQLx error.
+            ///
+            /// # Returns
+            ///
+            /// * `Self` - The specific error type.
             pub fn delete_error(error: SqlxError) -> Self {
                 AppError::DeleteError {
                     resource: $resource,
@@ -122,6 +187,11 @@ macro_rules! impl_error {
                 .into()
             }
 
+            /// Creates a new not found error.
+            ///
+            /// # Returns
+            ///
+            /// * `Self` - The specific error type.
             pub fn not_found() -> Self {
                 AppError::NotFound {
                     resource: $resource,
@@ -132,15 +202,19 @@ macro_rules! impl_error {
     };
 }
 
-// Define the main success enum
+/// Enum representing different types of application success responses.
 pub(crate) enum AppSuccess {
     Created { resource: &'static str, id: i32 },
     Updated { resource: &'static str, id: i32 },
     Deleted { resource: &'static str, id: i32 },
 }
 
-// Implement IntoResponse for AppSuccess
 impl IntoResponse for AppSuccess {
+    /// Converts `AppSuccess` into an HTTP response.
+    ///
+    /// # Returns
+    ///
+    /// * `Response<Body>` - The HTTP response corresponding to the success.
     fn into_response(self) -> Response<Body> {
         let (status, body) = match self {
             AppSuccess::Created { resource, id } => (
@@ -166,7 +240,18 @@ impl IntoResponse for AppSuccess {
     }
 }
 
-// Macro to implement specific success types
+/// Macro to implement specific success types based on the resource being handled.
+///
+/// # Arguments
+///
+/// * `$name` - The name of the success enum.
+/// * `$resource` - The name of the resource being handled.
+///
+/// # Example
+///
+/// ```rust
+/// impl_success!(ProvidersSuccess, "provider");
+/// ```
 #[macro_export]
 macro_rules! impl_success {
     ($name:ident, $resource:expr) => {
@@ -175,12 +260,26 @@ macro_rules! impl_success {
         }
 
         impl From<AppSuccess> for $name {
+            /// Converts `AppSuccess` into the specific success type.
+            ///
+            /// # Arguments
+            ///
+            /// * `success` - The `AppSuccess` to convert.
+            ///
+            /// # Returns
+            ///
+            /// * `Self` - The specific success type.
             fn from(success: AppSuccess) -> Self {
                 $name::Inner(success)
             }
         }
 
         impl IntoResponse for $name {
+            /// Converts the specific success type into an HTTP response.
+            ///
+            /// # Returns
+            ///
+            /// * `Response<Body>` - The HTTP response corresponding to the success.
             fn into_response(self) -> Response<Body> {
                 match self {
                     $name::Inner(success) => success.into_response(),
@@ -189,6 +288,15 @@ macro_rules! impl_success {
         }
 
         impl $name {
+            /// Creates a new created success response.
+            ///
+            /// # Arguments
+            ///
+            /// * `id` - The ID of the created resource.
+            ///
+            /// # Returns
+            ///
+            /// * `Self` - The specific success type.
             pub fn created(id: i32) -> Self {
                 AppSuccess::Created {
                     resource: $resource,
@@ -196,6 +304,16 @@ macro_rules! impl_success {
                 }
                 .into()
             }
+
+            /// Creates a new deleted success response.
+            ///
+            /// # Arguments
+            ///
+            /// * `id` - The ID of the deleted resource.
+            ///
+            /// # Returns
+            ///
+            /// * `Self` - The specific success type.
             pub fn deleted(id: i32) -> Self {
                 AppSuccess::Deleted {
                     resource: $resource,
@@ -203,6 +321,16 @@ macro_rules! impl_success {
                 }
                 .into()
             }
+
+            /// Creates a new updated success response.
+            ///
+            /// # Arguments
+            ///
+            /// * `id` - The ID of the updated resource.
+            ///
+            /// # Returns
+            ///
+            /// * `Self` - The specific success type.
             pub fn updated(id: i32) -> Self {
                 AppSuccess::Updated {
                     resource: $resource,
@@ -227,6 +355,15 @@ impl_error!(PricesError, "price");
 impl_error!(ScrapingRunsError, "scraping run");
 
 impl From<DeliveryZonesError> for ProvidersError {
+    /// Converts `DeliveryZonesError` into `ProvidersError`.
+    ///
+    /// # Arguments
+    ///
+    /// * `_err` - The `DeliveryZonesError` to convert.
+    ///
+    /// # Returns
+    ///
+    /// * `ProvidersError` - The converted error.
     fn from(_err: DeliveryZonesError) -> Self {
         ProvidersError::fetch_error(sqlx::Error::RowNotFound)
     }

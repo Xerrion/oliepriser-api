@@ -2,6 +2,15 @@ use argon2::password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, Salt
 use argon2::Argon2;
 use rand_core::OsRng;
 
+/// Hashes a password using Argon2id.
+///
+/// # Arguments
+///
+/// * `password` - The plain text password to hash.
+///
+/// # Returns
+///
+/// * `Result<String, Box<dyn std::error::Error>>` - The hashed password or an error.
 pub async fn hash_password(password: String) -> Result<String, Box<dyn std::error::Error>> {
     let salt = SaltString::generate(&mut OsRng);
 
@@ -16,6 +25,17 @@ pub async fn hash_password(password: String) -> Result<String, Box<dyn std::erro
 
     Ok(password_hash)
 }
+
+/// Verifies a password against a stored hash using Argon2id.
+///
+/// # Arguments
+///
+/// * `stored_hash` - The stored password hash.
+/// * `password` - The plain text password to verify.
+///
+/// # Returns
+///
+/// * `Result<bool, Box<dyn std::error::Error>>` - `true` if the password is valid, `false` otherwise.
 pub async fn verify_password(
     stored_hash: &str,
     password: &str,
