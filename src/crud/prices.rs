@@ -1,6 +1,5 @@
 use crate::app_state::AppState;
 use crate::auth::jwt::Claims;
-use crate::crud::providers;
 use crate::errors::{PricesError, PricesSuccess};
 use crate::models::prices::{
     PriceDetails, PriceInsertResponse, PriceQueryParams, Prices, ProviderPriceAdd,

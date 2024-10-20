@@ -10,7 +10,6 @@ mod errors;
 mod helpers;
 mod models;
 mod routes;
-mod security;
 
 ///
 /// Main function
